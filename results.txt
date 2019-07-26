@@ -1,0 +1,71 @@
+Provide one or more Django model queries that retrieve the requested data for each of the following:
+
+Find the albums recorded by the artist Queen.
+
+In [19]: Album.objects.filter(artist__name__icontains='Queen')                         
+Out[19]: <QuerySet [<Album: Album object (32)>, <Album: Album object (181)>, <Album: Album object (182)>]>
+albums = Album.objects.filter(artist__name__icontains='Queen') 
+album_titles=albums.values_list('title', flat=True) 
+In [27]: album_titles                                                                  
+Out[27]: <QuerySet ['Greatest Hits II', 'Greatest Hits I', 'News Of The World']
+
+Count how many tracks belong to the media type "Protected MPEG-4 video file".
+
+In [36]: Track.objects.filter(media_type__name='Protected MPEG-4 video file').count()  
+Out[36]: 214
+
+Find the genre with the name "Hip Hop/Rap".
+
+In [37]: Genre.objects.get(name='Hip Hop/Rap')                                         
+Out[37]: <Genre: Genre object (17)>
+
+Count how many tracks belong to the "Hip Hop/Rap" genre
+
+In [38]: Track.objects.filter(genre__name='Hip Hop/Rap').count()                       
+Out[38]: 35
+
+Find the total amount of time required to listen to all the tracks in the database.
+
+In [40]: from django.db.models import Sum      
+In [41]: Track.objects.aggregate(Sum('milliseconds'))                                  
+Out[41]: {'milliseconds__sum': 1377942652}
+382.76184777778 hours
+
+
+Find the highest price of any track that has the media type "MPEG audio file".
+
+In [45]: from django.db.models import Max                                              
+
+In [46]: Track.objects.filter(media_type__name='MPEG audio file').aggregate(Max('unit_p
+    ...: rice'))                                                                       
+Out[46]: {'unit_price__max': Decimal('0.99')}
+
+Find the name of the most expensive track that has the media type "MPEG audio file".
+
+In [64]: Track.objects.filter(unit_price=(Track.objects.filter(media_type__name='MPEG audio file').aggregate(Max('unit_price'))['unit_price__max']))[0].name                                                   
+Out[64]: 'Restless and Wild'
+
+Find the 2 oldest artists.
+
+In [74]: q = Artist.objects.all().order_by('-created_at')                              
+In [75]: q[0:2]                                                                        
+Out[75]: <QuerySet [<Artist: Artist object (187)>, <Artist: Artist object (41)>]>
+In [76]: names = q.values_list('name',flat=True)                                                                                                                                                               
+In [77]: names[0:2]                                                                                                                                                                                            
+Out[77]: <QuerySet ['Los Hermanos', 'Elis Regina']>
+
+Find the least expensive track that has the genre "Electronica/Dance".
+
+In [80]: Track.objects.filter(genre__name='Electronica/Dance').aggregate(Min('unit_price'))                                                                                                                    
+Out[80]: {'unit_price__min': Decimal('0.99')}
+
+In [81]: Track.objects.filter(unit_price=(Track.objects.filter(genre__name='Electronica/Dance').aggregate(Min('unit_price'))['unit_price__min']))[0].name                                                      
+Out[81]: 'Restless and Wild'
+
+Find all "MPEG audio file" tracks in the genre "Electronica/Dance".
+
+In [87]: foo = Track.objects.filter(genre__name='Electronica/Dance', media_type__name='MPEG audio file')  
+In [89]: bar = foo.values_list('name')                                                                                                                                                                         
+
+In [90]: bar                                                                                                                                                                                                   
+Out[90]: <QuerySet [('Instinto Colectivo',), ('Chapa o Coco',), ('Prostituta',), ('Eu So Queria Sumir',), ('Tres Reis',), ('Um Lugar ao Sol',), ('Batalha Naval',), ('O Misterio do Samba',), ('Armadura',), ('Na Ladeira',), ('Carimbo',), ('Catimbo',), ('Chega no Suingue',), ('Mun-Ra',), ('Freestyle Love',), ('Stillness In Time',), ('Journey To Arnhemland',), ('Just Another Story',), ('Todo o Carnaval tem seu Fim',), ('Funk de Bamba',), '...(remaining elements truncated)...']>
